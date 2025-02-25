@@ -1,12 +1,12 @@
 import Header from "../components/header";
-import History from "../components/history";
+import HistoryAll from "../components/historyall";
 import Footer from "../components/footer"
 
 export default function HistoryDefault() {
   return (
     <div>
     <Header/>
-    <History/>
+    <HistoryAll/>
     <Footer/>
     </div>
   );

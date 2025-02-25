@@ -30,19 +30,19 @@ export default function Header() {
     }, []);
 
     return (
-        <div className="bg-grey custom-height-header text-white">
+        <div className="bg-grey custom-height-header text-white sticky top-0">
             <div className="flex items-center justify-between px-4 py-1/2">
                 <div className="flex items-center space-x-4">
                     <img src="/PetroLogo.png" className="logo-custom" />
                 </div>
-                <h1 className="text-judul font-bold">SMART BAGGING SYSTEM</h1>
+                <h1 className="text-judul font-bold">SISTEM KLASIFIKASI SUHU DAN KELEMBABAN PUPUK UREA</h1>
                 <img src="/pergudangan.png" className="logo-custom" />
             </div>
             <div className="border-t-2 border-black"></div>
             <div className="flex items-center text-center justify-between bg-grey px-4 py-1 text-sm">
                 <div className="text-green-500 font-bold">RUNNING</div>
                 <div className="text-white font-semibold">
-                    BAGGING OUTPUT PREDICTION WITH MACHINE LEARNING TECHNOLOGY
+                     PART OF SMART BAGGING SYSTEM
                 </div>
                 <div className="text-white">{currentTime}</div>
             </div>

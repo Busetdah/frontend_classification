@@ -4,67 +4,56 @@ import React, { useState, useEffect } from "react";
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 export default function Body2() {
+    const [sensorData, setSensorData] = useState({ temp: 0, humd: 0, tempStatus: "NORMAL", humdStatus: "NORMAL" });
+    const [status, setStatus] = useState("Tidak Menggumpal");
+    
+    const useSSE = (url, setData, tempLow, tempHigh, humdLow, humdHigh) => {
+        useEffect(() => {
+            const eventSource = new EventSource(`${API_URL}${url}`);
+            eventSource.onmessage = (event) => {
+                try {
+                    const data = JSON.parse(event.data);
+                    const temp = data?.temp || 0;
+                    const humd = data?.humd || 0;
+                    const tempStatus = temp < tempLow ? "LOW" : temp > tempHigh ? "OVER" : "NORMAL";
+                    const humdStatus = humd < humdLow ? "LOW" : humd > humdHigh ? "OVER" : "NORMAL";
+                    setData({ temp, humd, tempStatus, humdStatus });
+                } catch (error) {
+                    console.error(`Error parsing SSE data from ${url}:`, error);
+                }
+            };
 
-    const [authorized, setAuthorized] = useState(false);
-    const [variableCtq1, setVariableCtq1] = useState({ pressure: 0, status: "NORMAL" });
-    const [variableCtq2, setVariableCtq2] = useState({ gatevalve: 0, status: "NORMAL" });
-    const [variableCtq3, setVariableCtq3] = useState({ predictedWeight: 0, offspec: 0, onspec: 0 });
+            eventSource.onerror = () => {
+                console.error(`SSE connection error for ${url}, closing connection.`);
+                eventSource.close();
+            };
+
+            return () => {
+                eventSource.close();
+            };
+        }, []);
+    };
 
     useEffect(() => {
-      const hasPredicted = sessionStorage.getItem("predicted");
-      if (!hasPredicted) {
-        window.location.href = "/";
-      } else {
-        setAuthorized(true);
-        sessionStorage.removeItem("predicted");
-      }
-    }, []);
-
-    const useSSE = (url, setData, thresholdLow, thresholdHigh) => {
-      useEffect(() => {
-        if (!authorized) return;
-        
-        const eventSource = new EventSource(`${API_URL}${url}`);
-    
+        const eventSource = new EventSource(`${API_URL}/api/potensi`);
         eventSource.onmessage = (event) => {
-          try {
-            const data = JSON.parse(event.data);
-            if (url === "/api/variablectq1") {
-              const pressure = data?.pressure || 0;
-              const status = pressure < thresholdLow ? "LOW" : pressure > thresholdHigh ? "OVER" : "NORMAL";
-              setData({ pressure, status });
-            } else if (url === "/api/variablectq2") {
-              const gatevalve = data?.gatevalve || 0;
-              const status = gatevalve < thresholdLow ? "LOW" : gatevalve > thresholdHigh ? "OVER" : "NORMAL";
-              setData({ gatevalve, status });
-            } else if (url === "/api/variablectq3") {
-              const predictedWeight = data?.predicted_weight?.predicted_weight || 0;
-              const offspec = data?.status_counts?.offspec || 0;
-              const onspec = data?.status_counts?.onspec || 0;
-              const statusSpec = data?.predicted_weight?.status === "ONSPEC" ? "ONSPEC" : "OFFSPEC";
-              setData({ predictedWeight, offspec, onspec, statusSpec });
+            try {
+                const data = JSON.parse(event.data);
+                setStatus(data.status);
+            } catch (error) {
+                console.error("Error parsing SSE data:", error);
             }
-          } catch (error) {
-            console.error(`Error parsing SSE data from ${url}:`, error);
-          }
         };
-    
-        eventSource.onerror = () => {
-          console.error(`SSE connection error for ${url}, closing connection.`);
-          eventSource.close();
-        };
-    
-        return () => {
-          eventSource.close();
-        };
-      }, [authorized]);
-    };
-    
-    useSSE("/api/variablectq1", setVariableCtq1, 9, 10);
-    useSSE("/api/variablectq2", setVariableCtq2, 0.04, 0.05);
-    useSSE("/api/variablectq3", setVariableCtq3, 40, 80);
 
-    if (!authorized) return null;
+        eventSource.onerror = (error) => {
+            console.error("SSE connection error:", error);
+            eventSource.close();
+        };
+
+        return () => eventSource.close();
+    }, []);
+    
+    useSSE("/api/produkdata", setSensorData, 29, 50, 29, 71);
 
     return (
     <div className="custom-height bg-blue py-1 relative">
@@ -77,107 +66,63 @@ export default function Body2() {
         <div className="absolute custom-hopper2 z-24">
             <img className="custom-hopper-image" src="/hopper-2.png"></img>
         </div>
-        <div className="custom-size-pressure absolute flex flex-col items-center gray-custom rounded-sm text-monitoring-custom z-20" style={{ bottom: "7%", left: "10%" }}>
+        <div className="custom-size-pressure absolute flex flex-col items-center gray-custom rounded-sm text-monitoring-custom z-20" style={{ top: "7%", left: "50vw" }}>
             <div className="flex items-center">
-                <img src="/ctqsatu.png" alt="CTQ" className="custom-logo-pressure" />
                 <div className="bg-gray-800 p-3 rounded-sm flex flex-col items-center text-white">
-                    <h2 className="font-bold text-center">Variable CTQ</h2>
-                    <div className="font-bold text-green-400">{variableCtq1.pressure} Psi</div>
+                    <h2 className="font-bold text-center custom-suhu">SUHU</h2>
+                    <div className="font-bold text-green-400">{sensorData.temp} °C</div>
                 </div>
             </div>
             <div className="flex justify-around w-full mt-3">
                 <div className="flex flex-col items-center">
-                    <div className={`custom-indicator border border-white rounded-sm ${variableCtq1.status === "LOW" ? "bg-green-500" : "bg-gray-500"}`}></div>
+                    <div className={`custom-indicator border border-white rounded-sm ${sensorData.tempStatus === "LOW" ? "bg-green-500" : "bg-gray-500"}`}></div>
                     <span className="text-green-700 font-semibold">LOW</span>
                 </div>
                 <div className="flex flex-col items-center">
-                    <div className={`custom-indicator border border-white rounded-sm ${variableCtq1.status === "NORMAL" ? "bg-yellow-500" : "bg-gray-500"}`}></div>
+                    <div className={`custom-indicator border border-white rounded-sm ${sensorData.tempStatus === "NORMAL" ? "bg-yellow-500" : "bg-gray-500"}`}></div>
                     <span className="text-yellow-700 font-semibold">NORMAL</span>
                 </div>
                 <div className="flex flex-col items-center">
-                    <div className={`custom-indicator border border-white rounded-sm ${variableCtq1.status === "OVER" ? "bg-red-500" : "bg-gray-500"}`}></div>
+                    <div className={`custom-indicator border border-white rounded-sm ${sensorData.tempStatus === "OVER" ? "bg-red-500" : "bg-gray-500"}`}></div>
                     <span className="text-red-700 font-semibold">OVER</span>
                 </div>
             </div>
         </div>
-        <div className="absolute z-1" style={{ bottom: '20vh', left: '18.5vw' }}>
-            <svg width="7vw" height="20vh">
-                <line x1="4.8vw" y1="23vh" x2="4.8vw" y2="0vh" stroke="black" strokeWidth="3" />
-            </svg>
-        </div>
-        <div className="absolute text-monitoring-custom custom-size-pressure flex flex-col items-center gray-custom rounded-sm" style={{ bottom: "20vh", left: "40vw" }}>
+        <div className="absolute text-monitoring-custom custom-size-pressure flex flex-col items-center gray-custom rounded-sm" style={{ bottom: "20vh", left: "50vw" }}>
             <div className="flex items-center">
-                <img src="/ctqdua.png" alt="CTQ" className="custom-logo-pressure" />
                 <div className="bg-gray-800 p-3 rounded-sm flex flex-col items-center text-white">
-                    <h2 className="font-bold text-center">Variable CTQ</h2>
-                    <div className="font-bold text-green-400">{variableCtq2.gatevalve} ms</div>
+                    <h2 className="font-bold text-center custom-suhu">KELEMBABAN</h2>
+                    <div className="font-bold text-green-400">{sensorData.humd} %</div>
                 </div>
             </div>
             <div className="flex justify-around w-full mt-3">
                 <div className="flex flex-col items-center">
-                    <div className={`custom-indicator border border-white rounded-sm ${variableCtq2.status === "LOW" ? "bg-green-500" : "bg-gray-500"}`}></div>
+                    <div className={`custom-indicator border border-white rounded-sm ${sensorData.humdStatus === "LOW" ? "bg-green-500" : "bg-gray-500"}`}></div>
                     <span className="text-green-700 font-semibold">LOW</span>
                 </div>
                 <div className="flex flex-col items-center">
-                    <div className={`custom-indicator border border-white rounded-sm ${variableCtq2.status === "NORMAL" ? "bg-yellow-500" : "bg-gray-500"}`}></div>
+                    <div className={`custom-indicator border border-white rounded-sm ${sensorData.humdStatus === "NORMAL" ? "bg-yellow-500" : "bg-gray-500"}`}></div>
                     <span className="text-yellow-700 font-semibold">NORMAL</span>
                 </div>
                 <div className="flex flex-col items-center">
-                    <div className={`custom-indicator border border-white rounded-sm ${variableCtq2.status === "OVER" ? "bg-red-500" : "bg-gray-500"}`}></div>
+                    <div className={`custom-indicator border border-white rounded-sm ${sensorData.humdStatus === "OVER" ? "bg-red-500" : "bg-gray-500"}`}></div>
                     <span className="text-red-700 font-semibold">OVER</span>
                 </div>
             </div>
         </div>
-        <div className="absolute z-1" style={{ bottom: '10vh', left: '30vw' }}>
-            <svg width="20vw" height="20vh">
-                <line x1="2vw" y1="3vh" x2="10vw" y2="3vh" stroke="black" strokeWidth="3" />
-            </svg>
-        </div>
-        <div className="absolute text-monitoring-custom custom-size-weight gray-custom border border-white text-gray-800 z-20" style={{ bottom: "30%", right: "10%" }}>
-            <div className="bg-gray-800 p-3 rounded-sm mt-2 flex flex-col items-center">
-            <h2 className="font-bold text-center text-white">Variable CTQ</h2>
-                <div className="font-bold text-green-400">{variableCtq3.predictedWeight} kg</div>
+        <div className="absolute gray-custom shadow-md p-1 text-center z-20" style={{ top: '25vh', right: '5vw' }}>
+            <div className="bg-black text-white px-3 py-2 text-monitoring-custom">
+                <p className="font-bold">STATUS</p>
             </div>
-            <div className="flex justify-between mt-3">
-                <div className="flex items-center">
-                <div className={`custom-indicator border border-white mr-1 ${variableCtq3.statusSpec === "ONSPEC" ? "bg-green-500" : "bg-gray-500"}`}></div>
-                <span className="font-semibold text-green-600">ONSPEC</span>
+            <div className="bg-black text-white px-3 py-2 mt-2 text-monitoring-custom flex flex-col items-start">
+                <div className="flex items-center justify-between w-full mb-2">
+                    <p className="font-bold">Menggumpal</p>
+                    <div className={`w-6 h-6 border border-white ${status === "Menggumpal" ? "bg-red-500" : "bg-gray-500"}`}></div>
                 </div>
-                <div className="flex items-center">
-                <div className={`custom-indicator border border-white mr-1 ${variableCtq3.statusSpec === "OFFSPEC" ? "bg-red-500" : "bg-gray-500"}`}></div>
-                <span className="font-semibold text-red-600">OFFSPEC</span>
+                <div className="flex items-center justify-between w-full">
+                    <p className="font-bold">Tidak Menggumpal</p>
+                    <div className={`ml-3 w-6 h-6 border border-white ${status === "Tidak Menggumpal" ? "bg-green-500" : "bg-gray-500"}`}></div>
                 </div>
-            </div>
-            <div className="mt-2 text-gray-800">
-                <p>On Spec: <span className="font-bold">{variableCtq3.onspec} bag</span></p>
-                <p>Off Spec: <span className="font-bold">{variableCtq3.offspec} bag</span></p>
-            </div>
-        </div>
-        <div className="conveyor-check absolute z-20" style={{ bottom: '15%', right: '2%' }}>
-            <div className="belt">
-                <span className="belt-text underline">Check Weigher Conveyor</span>
-            </div>
-            <div className="wheel left-wheel">
-                <div className="inner-wheel">
-                    <span className="plus-sign">+</span>
-                </div>
-            </div>
-            <div className="wheel right-wheel">
-                <div className="inner-wheel">
-                    <span className="plus-sign">+</span>
-                </div>
-            </div>
-        </div>
-        <div className="absolute z-1" style={{ bottom: '10vh', right: '15vw' }}>
-            <svg width="5vw" height="20vh">
-                <line x1="2vw" y1="3vh" x2="2vw" y2="15vh" stroke="black" strokeWidth="3" />
-            </svg>
-        </div>
-        <div className="flex absolute motor-m713d-page2 items-center w-fit">
-            <img src="/motor.png" className="custom-motor-height object-cover" />
-            <div className="ml-2 flex flex-col text-monitoring-custom">
-                <span className="text-white font-bold">M713D</span>
-                <span className="text-green-400 font-semibold">88.8 A</span>
             </div>
         </div>
     </div>

@@ -5,7 +5,7 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
-  --grey      : #2e2e2e;
+  --grey      : #525a66;
   --blue      : #0e2d88;
 }
 
@@ -169,7 +169,7 @@ body {
 }
 
 .motor-2379{
-  top: 20vh;
+  top: 19vh;
   left: 54vw;
 }
 
@@ -337,4 +337,8 @@ button{
 
 .footer-2-custom{
   z-index: 99;
+}
+
+.custom-suhu{
+  width: 12vw;
 }
