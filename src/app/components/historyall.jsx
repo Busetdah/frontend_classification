@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import dayjs from "dayjs";
+
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 const HistoryAll = () => {
@@ -23,10 +24,10 @@ const HistoryAll = () => {
 
     try {
       const response = await axios.get(url);
-      const formattedData = response.data.map((item, index) => ({
-        time: dayjs(item.recorded_at).format("HH:mm:ss"),
-        temp: item.temp + Math.sin(index) * 2,
-        humd: item.humd + Math.cos(index) * 2,
+      const formattedData = response.data.map((item) => ({
+        time: dayjs(item.recorded_at).format("HH:mm:ss"), // Format waktu tetap
+        temp: item.temp, // Data asli tanpa manipulasi
+        humd: item.humd, // Data asli tanpa manipulasi
       }));
 
       setData(formattedData);
@@ -40,8 +41,8 @@ const HistoryAll = () => {
   };
 
   return (
-    <div class="custom-height p-4">
-      <div >
+    <div className="custom-height p-4">
+      <div>
         <input
           type="datetime-local"
           value={startDate}
