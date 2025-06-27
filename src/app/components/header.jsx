@@ -35,7 +35,7 @@ export default function Header() {
                 <div className="flex items-center space-x-4">
                     <img src="/PetroLogo.png" className="logo-custom" />
                 </div>
-                <h1 className="text-judul font-bold">SISTEM KLASIFIKASI SUHU DAN KELEMBABAN PUPUK UREA</h1>
+                <h1 className="text-judul font-bold">Sistem Klasifikasi Kondisi Pupuk UREA</h1>
                 <img src="/pergudangan.png" className="logo-custom" />
             </div>
             <div className="border-t-2 border-black"></div>

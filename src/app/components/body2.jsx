@@ -70,10 +70,7 @@ export default function Body2() {
         eventSource.onmessage = (event) => {
             try {
                 const data = JSON.parse(event.data);
-                // Ubah status notifikasi menjadi huruf kecil untuk konsistensi
                 const notifStatus = data?.status.toLowerCase() || "tidak menggumpal";
-                // Cek apakah status notifikasi dan status umum sama-sama "menggumpal"
-                // dan pastikan waktu notifikasi baru
                 if (
                     notifStatus === "menggumpal" &&
                     status &&
@@ -102,8 +99,9 @@ export default function Body2() {
         <div className="custom-height bg-blue py-1 relative">
             {showPopup && (
                 <div className="fixed top-26 right-2 bg-red-600 text-white p-4 rounded shadow-lg z-50">
-                    <p className="font-bold">⚠ Peringatan!</p>
-                    <p>Ada potensi <strong>Menggumpal</strong></p>
+                    <p>Suhu & Kelembapan Pupuk diluar standard</p>
+                    <p>Akan terjadi penggumpalan</p>
+                    <p>Segera bersihkan pupuk yang menggumpal pada area Hopper</p>
                 </div>
             )}
 
@@ -116,7 +114,7 @@ export default function Body2() {
             <div className="absolute custom-hopper2 z-24">
                 <img className="custom-hopper-image" src="/hopper-2.png" alt="Hopper" />
             </div>
-
+            
             <div className="custom-size-pressure absolute flex flex-col items-center gray-custom rounded-sm text-monitoring-custom z-20" style={{ top: "7%", left: "50vw" }}>
                 <div className="flex items-center">
                     <div className="bg-gray-800 p-3 rounded-sm flex flex-col items-center text-white">
@@ -140,7 +138,7 @@ export default function Body2() {
                 </div>
             </div>
 
-            <div className="absolute text-monitoring-custom custom-size-pressure flex flex-col items-center gray-custom rounded-sm" style={{ bottom: "20vh", left: "50vw" }}>
+            <div className="absolute text-monitoring-custom custom-size-pressure flex flex-col items-center gray-custom rounded-sm z-20" style={{ bottom: "20vh", left: "50vw" }}>
                 <div className="flex items-center">
                     <div className="bg-gray-800 p-3 rounded-sm flex flex-col items-center text-white">
                         <h2 className="font-bold text-center custom-suhu">KELEMBABAN</h2>
@@ -163,6 +161,19 @@ export default function Body2() {
                 </div>
             </div>
 
+            {/* ===== PERBAIKAN DITERAPKAN DI SINI ===== */}
+            {/* Mengubah zIndex menjadi 10 agar berada di lapisan belakang */}
+            <div 
+                className="absolute"
+                style={{ top: '24vh', left: '32vw', zIndex: 10 }}
+            >
+                <svg width="30vw" height="30vh">
+                    <line x1="4vw" y1="5vh" x2="25vw" y2="5vh" stroke="black" strokeWidth="3"></line>
+                    <line x1="25vw" y1="2vh" x2="25vw" y2="30vh" stroke="black" strokeWidth="3"></line>
+                    <line x1="25vw" y1="0vh" x2="25vw" y2="2vh" stroke="black" strokeWidth="3"></line>
+                </svg>
+            </div>
+            
             <div className="absolute gray-custom shadow-md p-1 text-center z-20" style={{ top: '25vh', right: '5vw' }}>
                 <div className="bg-black text-white px-3 py-2 text-monitoring-custom">
                     <p className="font-bold">STATUS</p>
