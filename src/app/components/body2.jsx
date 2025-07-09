@@ -183,6 +183,10 @@ export default function Body2() {
                         <p className="font-bold">Menggumpal</p>
                         <div className={`w-6 h-6 border border-white ${status.toLowerCase() === "menggumpal" ? "bg-red-500" : "bg-gray-500"}`}></div>
                     </div>
+                    <div className="flex items-center justify-between w-full mb-2">
+                        <p className="font-bold">Potensi Menggumpal</p>
+                        <div className={`w-6 h-6 ml-6 border border-white ${status.toLowerCase() === "potensi menggumpal" ? "bg-orange-500" : "bg-gray-500"}`}></div>
+                    </div>
                     <div className="flex items-center justify-between w-full">
                         <p className="font-bold">Tidak Menggumpal</p>
                         <div className={`ml-3 w-6 h-6 border border-white ${status.toLowerCase() === "tidak menggumpal" ? "bg-green-500" : "bg-gray-500"}`}></div>
